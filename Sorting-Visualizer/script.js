@@ -6,7 +6,7 @@ var sortingSpeed = 20; // Initial Sorting Speed
 function updateSlider(slideAmount) {
     numElements = slideAmount;
     barHeight = (150 / slideAmount) * 4;
-    sortingSpeed = Math.round((101 / slideAmount) * 5);
+    sortingSpeed = Math.round((101 / slideAmount) * 9);
     resetArray();
 }
 
@@ -32,7 +32,7 @@ function resetArray() {
             '<div class="progress-bar" id="' + index + '" role="progressbar" style="width: ' + array[index] + '%; transition:none; " aria-valuenow="' + array[index] + '" aria-valuemin="0" aria-valuemax="110"></div></div>';
     }
     document.getElementById("arrayBars").innerHTML = data;
-    console.log(array);
+    console.log("Unsorted Array[" + numElements + "] " + array);
 }
 
 /**
@@ -62,6 +62,7 @@ async function sort(sortingMethod) {
     for (let index = 0; index < array.length; index++) {
         document.getElementById(index).className = "progress-bar bg-success";
     }
+    console.log("Sorted Array: " + array);
 
     // Enable buttons once sorting has been completed
     $(':button').prop('disabled', false);
@@ -118,8 +119,61 @@ function swap(one, two, outer) {
  * Merge Sort
  */
 async function mergeSort() {
-    //TODO
+    var nElems = array.length;
+    var helperArray = new Array(array.length);
+
+    await recMergeSort(helperArray, 0, nElems - 1);
 }
+
+async function recMergeSort(helperArray, lowerBound, upperBound) {
+    if (lowerBound == upperBound) {
+        return;
+    } else {
+        var mid = Math.floor((lowerBound + upperBound) / 2);
+        
+        await recMergeSort(helperArray, lowerBound, mid);
+        await recMergeSort(helperArray, mid + 1, upperBound);
+        await merge(helperArray, lowerBound, mid + 1, upperBound);
+    }
+}
+
+async function merge(helperArray, lowPtr, highPtr, upperBound) {
+    var i = 0; // helperArray index
+    var lowerBound = lowPtr;
+    var mid = highPtr - 1;
+    var numItems = upperBound - lowerBound + 1;
+
+    while(lowPtr <= mid && highPtr <= upperBound) {
+        if(array[lowPtr] < array[highPtr]) {
+            // Change the color of the two elements being compared to orange
+            document.getElementById(lowPtr).className = "progress-bar bg-warning";
+            document.getElementById(highPtr).className = "progress-bar bg-warning";
+            await sleep(10);
+            document.getElementById(lowPtr).className = "progress-bar";
+            document.getElementById(highPtr).className = "progress-bar";
+
+            helperArray[i++] = array[lowPtr++];
+        } else {
+            helperArray[i++] = array[highPtr++];
+        }
+        await sleep(sortingSpeed);
+    }
+
+    while (lowPtr <= mid) {
+        helperArray[i++] = array[lowPtr++];
+    }
+
+    while (highPtr <= upperBound) {
+        helperArray[i++] = array[highPtr++];
+    }
+
+    for(i = 0; i < numItems; i++) {
+        array[lowerBound + i] = helperArray[i];
+        $('#' + (lowerBound + i)).attr('aria-valuenow', array[lowerBound + i]).css('width', array[lowerBound + i] + '%');
+        await sleep(sortingSpeed);
+    }
+}
+
 
 /**
  * Quick Sort
